@@ -9,7 +9,7 @@ on:
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Récupération du Code
       uses: actions/checkout@v3
@@ -19,13 +19,6 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Connexion au Registre Docker (ACR)
-      uses: azure/docker-login@v1
-      with:
-        login-server: ${{ secrets.ACR_NAME }}.azurecr.io
-        username: ${{ secrets.ACR_NAME }}
-        password: ${{ secrets.AZURE_CREDENTIALS }} 
-        
     - name: Build & Push Docker Image
       run: |
         az acr build --registry ${{ secrets.ACR_NAME }} --image ${{ secrets.APP_NAME }}:${{ github.sha }} .
