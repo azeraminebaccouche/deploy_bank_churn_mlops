@@ -1,0 +1,40 @@
+name: Build and Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Récupération du Code
+      uses: actions/checkout@v3
+
+    - name: Connexion à Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Connexion au Registre Docker (ACR)
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.ACR_NAME }}.azurecr.io
+        username: ${{ secrets.ACR_NAME }}
+        password: ${{ secrets.AZURE_CREDENTIALS }} 
+        
+    - name: Build & Push Docker Image
+      run: |
+        az acr build --registry ${{ secrets.ACR_NAME }} --image ${{ secrets.APP_NAME }}:${{ github.sha }} .
+
+    - name: Déploiement sur Container App
+      uses: azure/container-apps-deploy-action@v1
+      with:
+        appSourcePath: ${{ github.workspace }}
+        acrName: ${{ secrets.ACR_NAME }}
+        containerAppName: ${{ secrets.APP_NAME }}
+        resourceGroup: ${{ secrets.RESOURCE_GROUP }}
+        imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/${{ secrets.APP_NAME }}:${{ github.sha }}
