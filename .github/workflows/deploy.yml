@@ -19,6 +19,8 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    # On utilise la méthode "az acr build" qui est plus robuste
+    # et qui n'a pas besoin de mot de passe compliqué.
     - name: Build & Push Docker Image
       run: |
         az acr build --registry ${{ secrets.ACR_NAME }} --image ${{ secrets.APP_NAME }}:${{ github.sha }} .
